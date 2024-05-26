@@ -1,0 +1,12 @@
+streamlit
+torch
+torchvision
+openai.clip
+pinecone
+langchain
+PyPDF2
+PyMuPDF
+pdfplumber
+sentence_transformers
+spacy
+PyCryptodome

@@ -13,14 +13,13 @@ from embeddings.text_embedder import TextEmbedder
 from embeddings.image_embedder import ImageEmbedder
 from embeddings.table_embedder import TableEmbedder
 from search import perform_similarity_search
-
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using device:", device)
 
-    pdf_directory = 'Pdfs'
+    pdf_directory = '../Pdfs/' #problem with punch.pdf 
     output_file = 'pdf_content_bert.json'
-    pinecone_api_key = "29d7d23a-569c-473e-bc4f-c5541f6d2b99"
+    pinecone_api_key = "a6b671ce-deea-4868-9a3b-eff77d0d84f5"
     
     # Initialize models
     clip_model, preprocess = clip.load("ViT-B/32", device=device)

@@ -3,6 +3,7 @@ import random
 from transformers import pipeline, BartTokenizer, BartForConditionalGeneration
 from sentence_transformers import SentenceTransformer
 import spacy
+import os
 # Load BART model and tokenizer for summarization
 bart_summarizer = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn')
 bart_tokenizer = BartTokenizer.from_pretrained('facebook/bart-large-cnn')
@@ -53,7 +54,7 @@ def perform_similarity_search(query_text, index_text, index_table):
         score = top_result['score']
         pdf_name = top_result['metadata']['pdf name']
         page_no = top_result['metadata']['page no']
-        chunk_no = top_result['metadata']['chunk no']
+        chunk_no = int(top_result['metadata']['chunk no'])
     else:
         context_text = ""
         result_id = None
@@ -76,11 +77,24 @@ def perform_similarity_search(query_text, index_text, index_table):
         answer = answer_question(context_text)
         print(answer)
     response = f"Chatty: {answer}"
+    image_path = f"images/{pdf_name}_page{page_no}_img{chunk_no}"
 
+# Check if the image file exists with different extensions
+    image_extensions = ['jpg', 'jpeg', 'png']
+    image_file = None
+    for ext in image_extensions:
+        if os.path.exists(f"{image_path}.{ext}"):
+            image_file = f"{image_path}.{ext}"
+            break   
     
+    print(image_file)
+
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         st.markdown(response)
+        if image_file:
+            image = open(image_file,'rb').read()
+            st.image(image, caption='Image', use_column_width=True)
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
 
