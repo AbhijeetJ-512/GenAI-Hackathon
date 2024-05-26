@@ -13,9 +13,10 @@ def setup_database(api_key, index_name, dimension):
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )
         index = pc.Index(index_name)
+        return index, True
     else:
         index = pc.Index(index_name)
-    return index
+        return index, False
 
 def batch_data(data, batch_size=100):
     for i in range(0, len(data), batch_size):

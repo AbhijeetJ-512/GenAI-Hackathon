@@ -14,10 +14,16 @@ class TextEmbedder:
             text_chunks = value["text_chunks"]
             for chunk_number, text_chunk in enumerate(text_chunks, start=1):
                 embeddings = self.embedding_model.encode(text_chunk).tolist()
+                metadata = {
+                    "pdf name": pdf_name,
+                    "page no": page_num,
+                    "chunk no": chunk_number,
+                    "Text": text_chunk
+                }
                 result = {
                     'id': f"{pdf_name}_{page_num}_{chunk_number}",
                     'values': embeddings,
-                    "metadata": {"Text": text_chunk}
+                    "metadata": metadata
                 }
                 results.append(result)
 

@@ -2,6 +2,7 @@
 import torch
 import clip
 import os
+import streamlit as st
 from database import setup_database
 from utils.file_utils import save_json, load_json
 from utils.data_utils import convert_keys_to_strings
@@ -11,6 +12,7 @@ from pdf_processing.pdf_table_extractor import PDFTableExtractor
 from embeddings.text_embedder import TextEmbedder
 from embeddings.image_embedder import ImageEmbedder
 from embeddings.table_embedder import TableEmbedder
+from search import perform_similarity_search
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -55,13 +57,39 @@ def main():
 
     # Setup Pinecone index
     # api_key, index_name, dimension, metric, embedding_model
-    text_index = setup_database(pinecone_api_key, index_name="text", dimension=384)
-    image_index = setup_database(pinecone_api_key, index_name="image", dimension=512)
-    table_index = setup_database(pinecone_api_key, index_name="table", dimension=768)
+    text_index ,textdb= setup_database(pinecone_api_key, index_name="text", dimension=384)
+    image_index ,imagedb= setup_database(pinecone_api_key, index_name="image", dimension=512)
+    table_index, tabledb = setup_database(pinecone_api_key, index_name="table", dimension=768)
+    print(textdb,tabledb,imagedb)
     # Process and upload embeddings
-    text_embedder.process_and_encode_text(content_with_str_keys, text_index)
-    image_embeddings = image_embedder.process_and_encode_images(content_with_str_keys, image_index)
-    table_embedder.process_and_encode_tables(content_with_str_keys, table_index)
+    if textdb:
+        text_embedder.process_and_encode_text(content_with_str_keys, text_index)
+    if imagedb:
+        image_embeddings = image_embedder.process_and_encode_images(content_with_str_keys, image_index)
+    if tabledb:
+        table_embedder.process_and_encode_tables(content_with_str_keys, table_index)
+
+    st.title("Chatty")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display chat messages from history on app rerun
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # React to user input
+    if prompt := st.chat_input("What is up?"):
+        # Display user message in chat message container
+        st.chat_message("user").markdown(prompt)
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+
+        query_text = prompt
+        # query_text = input("Enter query")
+        perform_similarity_search(query_text, text_index,table_index)
 
 if __name__ == "__main__":
     main()
